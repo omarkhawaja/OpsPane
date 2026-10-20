@@ -29,7 +29,7 @@ const TABS = [
   {
     name: "Screen Documentation",
     href: "/screens",
-    what: "The live, editable view for one repo: app-level summary (SSO/AD, microservice flags), a per-screen table of front-end/back-end components and data sources, and screen-to-screen navigation flow.",
+    what: "The live, editable view for one repo: a high-level app summary, then a per-screen table of front-end/back-end components, data sources, a screenshot, and screen-to-screen navigation flow.",
     when: "Use this as your working notes while actually documenting a repo. Click \"Record new version\" on the Analyzer tab when you want to lock in a snapshot.",
   },
   {
@@ -49,6 +49,12 @@ const TABS = [
     href: "/commands",
     what: "Copy-pasteable prompts for a Claude Code session, e.g. draining the pending-task queue.",
     when: "Use when you want Claude to do something specific and don't want to type the exact phrasing from memory.",
+  },
+  {
+    name: "Change Queue",
+    href: "/change-queue",
+    what: "The list the \"Point at element\" pointer tool feeds: click an element, describe what should change, and it's queued here instead of just your clipboard.",
+    when: "Use when you want to line up several UI changes across different tabs before handing them all to Claude in one batched prompt, instead of a point-copy-paste-describe round trip per element.",
   },
   {
     name: "Help",
@@ -112,6 +118,12 @@ export default function HelpPage() {
               <a href="/app-md" className="underline">App MD File</a> and{" "}
               <a href="/whats-new" className="underline">What&apos;s New</a> are how the app describes itself to a fresh Claude Code session; use{" "}
               <a href="/commands" className="underline">Commands</a> whenever you want Claude to act on any of this (e.g. drain the refresh queue).
+            </li>
+            <li>
+              Making several small UI changes? Use the &quot;Point at
+              element&quot; button (bottom-right, on every page), describe
+              each one, and they stack up on{" "}
+              <a href="/change-queue" className="underline">Change Queue</a> — copy them all as one prompt instead of asking for each one individually.
             </li>
           </ol>
           <p className="text-sm text-black/60 dark:text-white/60">

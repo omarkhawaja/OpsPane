@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { RefPicker } from "./components/RefPicker";
 import { Nav } from "./components/Nav";
+import { QueueBar } from "./components/QueueBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="h-full flex bg-background text-foreground">
         <Nav />
         <div className="flex-1 flex flex-col overflow-y-auto">{children}</div>
+        <QueueBar />
         <RefPicker />
       </body>
     </html>

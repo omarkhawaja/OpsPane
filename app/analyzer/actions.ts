@@ -9,6 +9,7 @@ type ScreenSnapshot = {
   route: string | null;
   frontend: string | null;
   backend: string | null;
+  screenshotUrl: string | null;
   dataSources: { kind: string; label: string }[];
 };
 
@@ -47,8 +48,6 @@ export async function requestReanalysis(formData: FormData) {
 export async function recordAnalysisVersion(formData: FormData) {
   const repoId = String(formData.get("repoId") ?? "");
   const summary = String(formData.get("summary") ?? "").trim() || null;
-  const hasSsoAd = formData.get("hasSsoAd") === "on";
-  const isMicroservice = formData.get("isMicroservice") === "on";
   const featuresRaw = String(formData.get("features") ?? "");
   const notes = String(formData.get("notes") ?? "").trim() || null;
   if (!repoId) return;
@@ -64,6 +63,7 @@ export async function recordAnalysisVersion(formData: FormData) {
     route: s.route,
     frontend: s.frontend,
     backend: s.backend,
+    screenshotUrl: s.screenshotUrl,
     dataSources: s.dataSources.map((d) => ({ kind: d.kind, label: d.label })),
   }));
 
@@ -77,8 +77,6 @@ export async function recordAnalysisVersion(formData: FormData) {
       repoId,
       versionNumber: (last?.versionNumber ?? 0) + 1,
       summary,
-      hasSsoAd,
-      isMicroservice,
       screensJson: JSON.stringify(screensSnapshot),
       featuresJson: JSON.stringify(parseFeatureLines(featuresRaw)),
       notes,

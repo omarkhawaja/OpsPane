@@ -1,8 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { DataSourceKind, TaskKind } from "@/app/generated/prisma/client";
+
+const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+
+function sanitizeFileName(name: string) {
+  return name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+}
 
 export async function createScreen(formData: FormData) {
   const repoId = String(formData.get("repoId") ?? "");
@@ -22,7 +31,51 @@ export async function createScreen(formData: FormData) {
 export async function deleteScreen(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await prisma.screen.delete({ where: { id } });
+
+  const existing = await prisma.screen.delete({ where: { id } });
+
+  if (existing.screenshotUrl?.startsWith("/uploads/")) {
+    await unlink(path.join(process.cwd(), "public", existing.screenshotUrl)).catch(() => {});
+  }
+
+  revalidatePath("/screens");
+}
+
+export async function uploadScreenshot(formData: FormData) {
+  const screenId = String(formData.get("screenId") ?? "");
+  const file = formData.get("file");
+  if (!screenId || !(file instanceof File) || file.size === 0) return;
+
+  const existing = await prisma.screen.findUnique({ where: { id: screenId } });
+  if (!existing) return;
+
+  await mkdir(UPLOAD_DIR, { recursive: true });
+  const storedName = `${randomUUID()}-${sanitizeFileName(file.name)}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  await writeFile(path.join(UPLOAD_DIR, storedName), buffer);
+
+  if (existing.screenshotUrl?.startsWith("/uploads/")) {
+    await unlink(path.join(process.cwd(), "public", existing.screenshotUrl)).catch(() => {});
+  }
+
+  await prisma.screen.update({
+    where: { id: screenId },
+    data: { screenshotUrl: `/uploads/${storedName}` },
+  });
+  revalidatePath("/screens");
+}
+
+export async function removeScreenshot(formData: FormData) {
+  const screenId = String(formData.get("screenId") ?? "");
+  if (!screenId) return;
+
+  const existing = await prisma.screen.findUnique({ where: { id: screenId } });
+  if (!existing?.screenshotUrl) return;
+
+  if (existing.screenshotUrl.startsWith("/uploads/")) {
+    await unlink(path.join(process.cwd(), "public", existing.screenshotUrl)).catch(() => {});
+  }
+  await prisma.screen.update({ where: { id: screenId }, data: { screenshotUrl: null } });
   revalidatePath("/screens");
 }
 
@@ -78,13 +131,11 @@ export async function requestRepoScan(formData: FormData) {
 export async function updateRepoSummary(formData: FormData) {
   const repoId = String(formData.get("repoId") ?? "");
   const summary = String(formData.get("summary") ?? "").trim() || null;
-  const hasSsoAd = formData.get("hasSsoAd") === "on";
-  const isMicroservice = formData.get("isMicroservice") === "on";
   if (!repoId) return;
 
   await prisma.repo.update({
     where: { id: repoId },
-    data: { summary, hasSsoAd, isMicroservice },
+    data: { summary },
   });
   revalidatePath("/screens");
 }

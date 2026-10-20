@@ -54,6 +54,11 @@ export default function Home() {
             body="Copy-pasteable prompts for a Claude Code session, with a one-click copy button."
           />
           <Card
+            href="/change-queue"
+            title="Change Queue"
+            body="Point at an element, describe the change, and batch several of them into one prompt."
+          />
+          <Card
             href="/help"
             title="Help"
             body="What every tab does, when to use it, and how the whole app fits together."

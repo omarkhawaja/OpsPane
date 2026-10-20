@@ -6,6 +6,7 @@ type ScreenSnapshot = {
   route: string | null;
   frontend: string | null;
   backend: string | null;
+  screenshotUrl?: string | null;
   dataSources: { kind: string; label: string }[];
 };
 
@@ -181,14 +182,6 @@ export default async function AnalyzerPage(props: PageProps<"/analyzer">) {
               {selectedVersion.summary && (
                 <p className="text-sm text-black/70 dark:text-white/70 mb-2">{selectedVersion.summary}</p>
               )}
-              <div className="flex gap-4 text-xs">
-                <span className={selectedVersion.hasSsoAd ? "text-green-600 dark:text-green-400" : "text-black/40 dark:text-white/40"}>
-                  {selectedVersion.hasSsoAd ? "✓" : "✗"} SSO / Active Directory
-                </span>
-                <span className={selectedVersion.isMicroservice ? "text-green-600 dark:text-green-400" : "text-black/40 dark:text-white/40"}>
-                  {selectedVersion.isMicroservice ? "✓" : "✗"} Microservice split
-                </span>
-              </div>
               {selectedVersion.notes && (
                 <p className="mt-2 text-xs text-black/50 dark:text-white/50">Notes: {selectedVersion.notes}</p>
               )}
@@ -205,6 +198,7 @@ export default async function AnalyzerPage(props: PageProps<"/analyzer">) {
                       <th className="px-4 py-2 font-medium">Front-end</th>
                       <th className="px-4 py-2 font-medium">Back-end</th>
                       <th className="px-4 py-2 font-medium">Data sources</th>
+                      <th className="px-4 py-2 font-medium">Screenshot</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -221,6 +215,19 @@ export default async function AnalyzerPage(props: PageProps<"/analyzer">) {
                               {d.label}
                             </div>
                           ))}
+                        </td>
+                        <td className="px-4 py-2">
+                          {s.screenshotUrl ? (
+                            <a href={s.screenshotUrl} target="_blank" rel="noreferrer">
+                              <img
+                                src={s.screenshotUrl}
+                                alt={`${s.name} screenshot`}
+                                className="w-24 h-16 object-cover rounded border border-black/10 dark:border-white/15"
+                              />
+                            </a>
+                          ) : (
+                            "—"
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -281,19 +288,9 @@ export default async function AnalyzerPage(props: PageProps<"/analyzer">) {
               rows={2}
               className="w-full rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
             />
-            <div className="flex gap-6 text-sm">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" name="hasSsoAd" defaultChecked={selectedVersion?.hasSsoAd ?? selectedRepo.hasSsoAd} />
-                Has SSO / Active Directory integration
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" name="isMicroservice" defaultChecked={selectedVersion?.isMicroservice ?? selectedRepo.isMicroservice} />
-                Split into microservices
-              </label>
-            </div>
             <textarea
               name="features"
-              placeholder={"One feature per line, e.g.\nSSO login: Okta SAML integration\nDashboard export"}
+              placeholder={"One feature per line, e.g.\nUser authentication: email/password login\nDashboard export"}
               rows={4}
               className="w-full rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm font-mono"
             />

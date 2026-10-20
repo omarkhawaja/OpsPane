@@ -16,6 +16,7 @@ const TABS = [
   { href: "/analyzer", label: "Repository Analyzer" },
   { href: "/app-md", label: "App MD File" },
   { href: "/commands", label: "Commands" },
+  { href: "/change-queue", label: "Change Queue" },
   { href: "/help", label: "Help" },
   { href: "/whats-new", label: "What's New" },
 ] as const;

@@ -6,8 +6,10 @@ import {
   deleteDataSource,
   deleteScreen,
   deleteTransition,
+  removeScreenshot,
   requestRepoScan,
   updateRepoSummary,
+  uploadScreenshot,
 } from "./actions";
 import { DataSourceKind } from "@/app/generated/prisma/client";
 
@@ -60,8 +62,10 @@ export default async function ScreensPage(props: PageProps<"/screens">) {
       <main className="mx-auto max-w-6xl px-6 py-10 flex-1 w-full">
         <h1 className="text-xl font-semibold mb-1">Screen Documentation</h1>
         <p className="text-sm text-black/60 dark:text-white/60 mb-6">
-          Per-repo breakdown: every screen, its front-end/back-end components,
-          its data sources, and how screens link to each other.
+          For one repo: a high-level view of what the app does and its
+          overall data sources, then a screen-by-screen table of front-end/
+          back-end components, data sources, a screenshot, and how screens
+          link to each other.
         </p>
 
         {repos.length === 0 ? (
@@ -121,34 +125,16 @@ export default async function ScreensPage(props: PageProps<"/screens">) {
                     <textarea
                       name="summary"
                       defaultValue={repo.summary ?? ""}
-                      placeholder="High-level summary: stack, overall data sources, deployment model..."
+                      placeholder="What this app does, at a glance, and its overall data sources (e.g. Postgres, Pinecone, internal APIs)..."
                       className="w-full rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
                       rows={2}
                     />
-                    <div className="flex items-center gap-6 text-sm">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          name="hasSsoAd"
-                          defaultChecked={repo.hasSsoAd}
-                        />
-                        Has SSO / Active Directory integration
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          name="isMicroservice"
-                          defaultChecked={repo.isMicroservice}
-                        />
-                        Split into microservices
-                      </label>
-                      <button
-                        type="submit"
-                        className="ml-auto rounded-md bg-foreground text-background px-3 py-1.5 text-xs font-medium"
-                      >
-                        Save
-                      </button>
-                    </div>
+                    <button
+                      type="submit"
+                      className="self-end rounded-md bg-foreground text-background px-3 py-1.5 text-xs font-medium"
+                    >
+                      Save
+                    </button>
                   </form>
                   {repo.lastScannedAt && (
                     <p className="mt-2 text-xs text-black/40 dark:text-white/40">
@@ -169,13 +155,14 @@ export default async function ScreensPage(props: PageProps<"/screens">) {
                           <th className="px-4 py-2 font-medium">Front-end</th>
                           <th className="px-4 py-2 font-medium">Back-end</th>
                           <th className="px-4 py-2 font-medium">Data sources</th>
+                          <th className="px-4 py-2 font-medium">Screenshot</th>
                           <th className="px-4 py-2 font-medium"></th>
                         </tr>
                       </thead>
                       <tbody>
                         {repo.screens.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="px-4 py-6 text-center text-black/50 dark:text-white/50">
+                            <td colSpan={7} className="px-4 py-6 text-center text-black/50 dark:text-white/50">
                               No screens yet. Add one below.
                             </td>
                           </tr>
@@ -228,6 +215,38 @@ export default async function ScreensPage(props: PageProps<"/screens">) {
                                   +
                                 </button>
                               </form>
+                            </td>
+                            <td className="px-4 py-2 min-w-[140px]">
+                              {s.screenshotUrl ? (
+                                <div className="flex flex-col items-start gap-1">
+                                  <a href={s.screenshotUrl} target="_blank" rel="noreferrer">
+                                    <img
+                                      src={s.screenshotUrl}
+                                      alt={`${s.name} screenshot`}
+                                      className="w-24 h-16 object-cover rounded border border-black/10 dark:border-white/15"
+                                    />
+                                  </a>
+                                  <form action={removeScreenshot}>
+                                    <input type="hidden" name="screenId" value={s.id} />
+                                    <button className="text-xs text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white">
+                                      Remove
+                                    </button>
+                                  </form>
+                                </div>
+                              ) : (
+                                <form action={uploadScreenshot} className="flex flex-col gap-1">
+                                  <input type="hidden" name="screenId" value={s.id} />
+                                  <input
+                                    type="file"
+                                    name="file"
+                                    accept="image/*"
+                                    className="text-xs w-28"
+                                  />
+                                  <button className="rounded border border-black/15 dark:border-white/20 px-1.5 py-0.5 text-xs self-start">
+                                    Upload
+                                  </button>
+                                </form>
+                              )}
                             </td>
                             <td className="px-4 py-2">
                               <form action={deleteScreen}>

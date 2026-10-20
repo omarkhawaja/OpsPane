@@ -47,6 +47,27 @@ enum CommCategory {
   OTHER
 }
 
+enum ChangeRequestStatus {
+  PENDING
+  DONE
+}
+
+// The queue the RefPicker pointer tool feeds. Pointing at an element and
+// typing an instruction creates one of these instead of (or in addition to)
+// just copying a reference to the clipboard, so multiple UI change requests
+// can pile up across a session and be handed to Claude Code as one batch —
+// via "Copy all pending" on the Change Queue tab — instead of a
+// point-copy-paste-describe round trip per element.
+model ChangeRequest {
+  id          Int                 @id @default(autoincrement())
+  ref         String // e.g. "screen:cmabc123" — the data-ops-ref value
+  label       String // human-readable, e.g. 'Screen "Dashboard" (acme/legacy-app)'
+  instruction String // what the user typed: what should change
+  status      ChangeRequestStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+  completedAt DateTime?
+}
+
 model Url {
   id            String   @id @default(cuid())
   url           String   @unique // for type=FILE, the servable path e.g. /uploads/<cuid>-name.pdf
@@ -62,14 +83,12 @@ model Url {
 }
 
 model Repo {
-  id             String    @id @default(cuid())
-  urlId          String    @unique
-  url            Url       @relation(fields: [urlId], references: [id], onDelete: Cascade)
-  name           String
-  summary        String? // high-level app-level table: stack, overall data sources, SSO/AD status, microservice-split status
-  hasSsoAd       Boolean   @default(false)
-  isMicroservice Boolean   @default(false)
-  lastScannedAt  DateTime?
+  id            String    @id @default(cuid())
+  urlId         String    @unique
+  url           Url       @relation(fields: [urlId], references: [id], onDelete: Cascade)
+  name          String
+  summary       String? // high-level app-level description: what it does, overall data sources
+  lastScannedAt DateTime?
 
   screens          Screen[]
   features         Feature[]
@@ -87,17 +106,15 @@ model Repo {
 // diffs two of these snapshots (same repo across versions, or two repos)
 // by matching screen/feature names as plain strings — no AST diffing.
 model RepoAnalysisVersion {
-  id             Int      @id @default(autoincrement())
-  repoId         String
-  repo           Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
-  versionNumber  Int
-  summary        String?
-  hasSsoAd       Boolean  @default(false)
-  isMicroservice Boolean  @default(false)
-  screensJson    String // JSON: [{ name, route, frontend, backend, dataSources: [{ kind, label }] }]
-  featuresJson   String // JSON: [{ name, description }]
-  notes          String? // e.g. "what changed since last version"
-  createdAt      DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  repoId        String
+  repo          Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  summary       String?
+  screensJson   String // JSON: [{ name, route, frontend, backend, screenshotUrl, dataSources: [{ kind, label }] }]
+  featuresJson  String // JSON: [{ name, description }]
+  notes         String? // e.g. "what changed since last version"
+  createdAt     DateTime @default(now())
 
   @@unique([repoId, versionNumber])
 }
@@ -134,17 +151,18 @@ model Member {
 }
 
 model Screen {
-  id        String   @id @default(cuid())
-  repoId    String
-  repo      Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
-  name      String
-  route     String? // e.g. /dashboard/settings
-  frontend  String? // JSON-stringified list of front-end components
-  backend   String? // JSON-stringified list of back-end components/endpoints
-  notes     String?
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  repoId        String
+  repo          Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  name          String
+  route         String? // e.g. /dashboard/settings
+  frontend      String? // JSON-stringified list of front-end components
+  backend       String? // JSON-stringified list of back-end components/endpoints
+  screenshotUrl String? // servable path under public/uploads/, e.g. /uploads/<uuid>-dashboard.png
+  notes         String?
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   dataSources ScreenDataSource[]
   outgoing    ScreenTransition[] @relation("fromScreen")
