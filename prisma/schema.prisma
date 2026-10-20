@@ -1,0 +1,144 @@
+// OpsPane — local-first engineering/documentation dashboard.
+// See OPSPANE.md at repo root for the full architecture description.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UrlType {
+  GITHUB_REPO
+  JIRA_BOARD
+  JIRA_TICKET
+  CONFLUENCE_PAGE
+  OTHER
+}
+
+enum TaskKind {
+  REPO_SCAN
+  JIRA_STATUS
+  CONFLUENCE_SCRAPE
+}
+
+enum TaskStatus {
+  PENDING
+  DONE
+  FAILED
+}
+
+enum DataSourceKind {
+  REAL_DB
+  DUMMY
+  API
+  UNKNOWN
+}
+
+model Url {
+  id          String   @id @default(cuid())
+  url         String   @unique
+  type        UrlType
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  repo     Repo?
+  features Feature[]
+}
+
+model Repo {
+  id             String    @id @default(cuid())
+  urlId          String    @unique
+  url            Url       @relation(fields: [urlId], references: [id], onDelete: Cascade)
+  name           String
+  summary        String? // high-level app-level table: stack, overall data sources, SSO/AD status, microservice-split status
+  hasSsoAd       Boolean   @default(false)
+  isMicroservice Boolean   @default(false)
+  lastScannedAt  DateTime?
+
+  screens  Screen[]
+  features Feature[]
+  members  Member[]
+}
+
+model Member {
+  id        String  @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String
+  role      String?
+  notes     String?
+  repoId    String?
+  repo      Repo?   @relation(fields: [repoId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Screen {
+  id          String   @id @default(cuid())
+  repoId      String
+  repo        Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  name        String
+  route       String? // e.g. /dashboard/settings
+  frontend    String? // JSON-stringified list of front-end components
+  backend     String? // JSON-stringified list of back-end components/endpoints
+  notes       String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dataSources ScreenDataSource[]
+  outgoing    ScreenTransition[] @relation("fromScreen")
+  incoming    ScreenTransition[] @relation("toScreen")
+}
+
+model ScreenDataSource {
+  id       String         @id @default(cuid())
+  screenId String
+  screen   Screen         @relation(fields: [screenId], references: [id], onDelete: Cascade)
+  kind     DataSourceKind @default(UNKNOWN)
+  label    String // e.g. "Postgres: users table", "Pinecone index: docs", "dummy fixture data"
+}
+
+model ScreenTransition {
+  id           String  @id @default(cuid())
+  repoId       String
+  fromScreenId String
+  fromScreen   Screen  @relation("fromScreen", fields: [fromScreenId], references: [id], onDelete: Cascade)
+  toScreenId   String
+  toScreen     Screen  @relation("toScreen", fields: [toScreenId], references: [id], onDelete: Cascade)
+  trigger      String? // e.g. "click Save button"
+}
+
+model Feature {
+  id             String    @id @default(cuid())
+  name           String
+  repoId         String?
+  repo           Repo?     @relation(fields: [repoId], references: [id], onDelete: SetNull)
+  jiraUrlId      String?
+  jiraUrl        Url?      @relation(fields: [jiraUrlId], references: [id], onDelete: SetNull)
+  status         String? // raw Jira status/column, cached
+  completionPct  Int? // 0-100, derived from status, cached
+  lastCheckedAt  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+// Task queue for the "Claude-Code-driven" refresh model: clicking a Refresh
+// button in the UI just creates a PENDING row here. A Claude Code session
+// picks up pending tasks, does the real work (reading the repo, calling the
+// Jira/Confluence MCP), and marks the task DONE after writing results back
+// into the tables above. Nothing here calls an external API automatically.
+model Task {
+  id          String     @id @default(cuid())
+  kind        TaskKind
+  targetId    String // id of the Repo, Feature, or Url this task is about
+  status      TaskStatus @default(PENDING)
+  requestedAt DateTime   @default(now())
+  completedAt DateTime?
+  notes       String?
+}

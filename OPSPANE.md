@@ -1,0 +1,49 @@
+# OpsPane - Single Pane of Glass for Repo Docs, Team Ops, and Feature Tracking
+
+## Overview
+OpsPane is a local-first dashboard built for a technical lead managing multiple teams and repos through a POC-to-production migration. It solves one problem: too many places to look (GitHub repos, Jira boards, Confluence pages, team rosters, scattered notes) to answer "what does this app actually do, how far along is it, and who owns it." OpsPane centralizes that into one app, backed by a local SQLite database, and treats external systems (GitHub, Jira, Confluence) as sources you refresh on demand rather than live dependencies. The business vision is to cut the time spent context-switching across tools down to near zero for recurring status/documentation questions.
+
+## User Preferences
+Preferred communication style: direct, concrete, no filler. Push back on scope creep; sequence big asks into phases rather than building everything at once.
+
+## System Architecture
+
+### Frontend
+- **Framework**: Next.js 16 (App Router) with React 19 and TypeScript
+- **Styling**: Tailwind CSS v4, no component library — plain utility classes
+- **Data fetching**: Server Components read directly from Prisma; no client-side data-fetching library
+- **Mutations**: Next.js Server Actions (`"use server"` functions colocated per route in `actions.ts`), using `revalidatePath` to refresh server-rendered data after writes
+- **Interactivity**: Minimal client components — currently just `CopyButton` (clipboard) — everything else is server-rendered HTML forms
+
+### Backend
+- **Runtime**: Node.js (no separate server process — Next.js route/server-action runtime only)
+- **Data layer**: Prisma ORM 7 against SQLite via the `@prisma/adapter-better-sqlite3` driver adapter (Prisma 7 removed inline `datasource.url` in `schema.prisma`; the connection now lives in `prisma7.config.ts` and in `lib/prisma.ts` for the runtime client)
+- **Database file**: `prisma/dev.db`, a single SQLite file — no server to run, no network calls for normal use
+
+### Data Storage
+- **Database**: SQLite (file-based, local only)
+- **ORM**: Prisma 7, client generated to `app/generated/prisma` (custom output path, not `node_modules`)
+- **Schema**: `prisma/schema.prisma` — models are `Url`, `Repo`, `Screen`, `ScreenDataSource`, `ScreenTransition`, `Feature`, `Member`, `Task`
+
+### Key Features and Design Decisions
+- **URL Index** (`/urls`): every GitHub repo, Jira board/ticket, and Confluence page you track lives here first, each with a one-line description. Adding a `GITHUB_REPO` URL auto-creates a linked `Repo` row so it immediately shows up in Screen Documentation.
+- **Screen Documentation** (`/screens`): pick a repo, see a high-level app summary (free-text + two checkboxes flagging whether the analyzed app has SSO/Active Directory integration and whether it's split into microservices — these describe the *target* repo being analyzed, not OpsPane itself), then a per-screen table of front-end components, back-end components, and tagged data sources (`REAL_DB` / `DUMMY` / `API` / `UNKNOWN`). Screen-to-screen navigation is recorded as `ScreenTransition` rows and rendered as a simple linked-box flow list.
+- **Feature Completion** (`/features`): features optionally linked to a repo and to a Jira-ticket URL from the URL Index. `status` and `completionPct` are cached columns on `Feature`, shown as a progress bar — they do not update themselves.
+- **Team** (`/team`): first name, last name, email, role, and an optional project (repo) link per person. Every email has a copy-to-clipboard button (`CopyButton`) so you never have to hunt for an address to paste into an email client.
+- **App MD File** (`/app-md`): this tab reads and writes `OPSPANE.md` (this file) directly via `node:fs`. It exists so a new Claude Code session can `cat` or open this file and immediately understand the app's current shape instead of re-deriving it from the codebase. **This file should be updated whenever a feature, model, or architectural decision changes** — that update can happen by editing this file directly or by saving through the `/app-md` tab; both write the same file.
+- **Refresh model — "Claude-Code-driven," decided explicitly over a standalone-API-key app**: nothing in OpsPane calls GitHub, Jira, or Confluence automatically. Every "Refresh" button (on a URL, a repo, or a feature) just inserts a `PENDING` row into the `Task` table (`kind`: `REPO_SCAN` | `JIRA_STATUS` | `CONFLUENCE_SCRAPE`, `targetId`: the id of the thing to refresh). A Claude Code session is expected to periodically query `prisma.task.findMany({ where: { status: "PENDING" } })`, do the real work using its own GitHub/Jira/Confluence MCP tools, write the results into the relevant tables (`Repo.summary`/`hasSsoAd`/`isMicroservice`, `Screen`/`ScreenDataSource`, `Feature.status`/`completionPct`, etc.), and mark the task `DONE`. This keeps OpsPane's own token/API usage at zero and avoids needing any API keys or OAuth wired into the app itself.
+- **No auth, no multi-user**: this is a single-operator local tool. No login, no SSO — intentionally, since adding identity management here would contradict the "ship something usable fast" goal. If multi-user access becomes a real need later, that's a distinct phase, not a default.
+
+## External Dependencies
+- **ORM / DB driver**: `prisma`, `@prisma/client`, `@prisma/adapter-better-sqlite3`, `better-sqlite3`
+- **Framework**: `next`, `react`, `react-dom`
+- **Styling**: `tailwindcss`, `@tailwindcss/turbopack`
+- **Env loading**: `dotenv` (required by `prisma7.config.ts`)
+- **Planned, not yet integrated**: GitHub MCP, Atlassian/Jira MCP, Confluence MCP — these are used *by the Claude Code session* to fulfill pending `Task` rows, not called by the app's own code.
+
+## Open / Deferred Scope
+- **Confluence Scanner tab**: deferred from v1. Will scrape Confluence pages linked from URL Index, store full content locally, tie it to a feature or repo, with copy-clip on every stored block.
+- **Element-pointer / click-to-reference system**: not yet built. Intended to let a user click/highlight a specific tab or panel in the UI and hand that exact reference to Claude in a prompt.
+- **Screenshot-driven UI walkthrough tooling**: not yet built. Intended as an extension of Screen Documentation — paste a screenshot, Claude links it to the relevant repo code.
+- **Multi-repo merge/migration support**: not yet built. Today each `Repo` is analyzed independently; there's no feature yet for reconciling/merging documentation across repos being consolidated.
+- **Communication/documentation paste-and-store hub**: not yet built as its own tab (separate from the Confluence Scanner) — raw pasted emails/messages with sequence-ordering and copy-clip.
