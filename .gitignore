@@ -43,3 +43,6 @@ next-env.d.ts
 /app/generated/prisma
 /prisma/dev.db
 /prisma/dev.db-journal
+
+# user-uploaded documents — local data, same policy as the SQLite DB
+/public/uploads/

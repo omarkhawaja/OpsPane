@@ -32,6 +32,12 @@ const DEFAULT_COMMANDS = [
     command: 'Record a new analysis version for "<repo A>" and "<repo B>", then compare them in the Repository Comparer.',
     description: "Useful before deciding which of two similar apps to keep or merge.",
   },
+  {
+    label: "Sync after pulling new code",
+    command: "I just pulled the latest OpsPane code from GitHub — apply any new database migrations so my existing data stays intact.",
+    description:
+      "Runs npm install (if needed), npx prisma generate, and npx prisma migrate deploy. Never touches existing rows in prisma/dev.db — migrations only add structure.",
+  },
 ] as const;
 
 export async function seedDefaultCommands() {

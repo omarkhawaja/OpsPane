@@ -62,6 +62,27 @@ assumptions.
 - **Commands** (`/commands`): a `Command` table of copy-pasteable Claude Code prompts (label, exact command text, one-line description). Seeded with 5 defaults (process pending tasks, re-analyze a repo, summarize communications, update this file, compare two repos) via a "Load starter commands" button shown only when the table is empty (`seedDefaultCommands` in `app/commands/actions.ts`) — avoids the double-insert risk of seeding as a render-time side effect. Full CRUD after that.
 - **What's New** (`/whats-new`, last tab in the sidebar): a `Release` table — version, title, free-text notes, and a `commitSha` auto-captured via `execSync("git rev-parse HEAD")` at the moment the entry is created. **This is the actual rollback mechanism**: the table itself holds no app-state snapshot, just a human-readable index into git history, so "roll back to v0.3.0" means `git checkout <that entry's commitSha>`, not restoring a database row. **Workflow going forward: after a batch of changes lands (and is committed), record a Release entry summarizing what shipped** — do this after `git commit`, not before, or the captured SHA will point at the previous commit instead of the one that actually contains the change.
 
+## Updating This App Without Losing Your Data
+`prisma/dev.db` — the SQLite file holding everything typed into every tab — is
+git-ignored. It was never committed, so `git pull` never touches it and never
+has. Each developer has their own local `dev.db` on their own machine; pulling
+someone else's code change can never see, overwrite, or reset another
+person's data, because that data was never in the repo.
+
+The one thing that *does* need a manual step after pulling code that changed
+`prisma/schema.prisma`: apply the new migration to your existing database.
+Prisma migrations are additive (`CREATE TABLE`, `ALTER TABLE ... ADD COLUMN`)
+— they add structure, they don't delete your existing rows, unless a specific
+migration explicitly drops a column/table (which `prisma migrate deploy`
+would refuse to run unguarded and flag loudly; that hasn't happened in this
+project's history so far). After `git pull`:
+```
+npm install          # only if package.json changed
+npx prisma generate   # regenerate the client for the current schema
+npx prisma migrate deploy   # apply any new migrations to your local dev.db
+```
+Then restart `npm run dev`. Your existing URLs, screens, features, communications, team members, commands, and release history are all still there.
+
 ## External Dependencies
 - **ORM / DB driver**: `prisma`, `@prisma/client`, `@prisma/adapter-better-sqlite3`, `better-sqlite3`
 - **Framework**: `next`, `react`, `react-dom`

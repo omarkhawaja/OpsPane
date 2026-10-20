@@ -4,16 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 
+// Ordered by expected daily-use frequency (most-used first), per user
+// preference — not alphabetically or by build order. What's New always
+// stays last. Keep app/help/page.tsx's table in this same order.
 const TABS = [
-  { href: "/urls", label: "URL Index" },
-  { href: "/analyzer", label: "Repository Analyzer" },
-  { href: "/screens", label: "Screen Documentation" },
   { href: "/features", label: "Feature Completion" },
-  { href: "/communications", label: "Communications" },
   { href: "/team", label: "Team" },
+  { href: "/urls", label: "Documentation" },
+  { href: "/communications", label: "Communications" },
+  { href: "/screens", label: "Screen Documentation" },
+  { href: "/analyzer", label: "Repository Analyzer" },
   { href: "/app-md", label: "App MD File" },
-  { href: "/help", label: "Help" },
   { href: "/commands", label: "Commands" },
+  { href: "/help", label: "Help" },
   { href: "/whats-new", label: "What's New" },
 ] as const;
 

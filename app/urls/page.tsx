@@ -1,15 +1,20 @@
 import { prisma } from "@/lib/prisma";
-import { createUrl } from "./actions";
+import { createUrl, uploadDocument } from "./actions";
 import { UrlRow } from "./UrlRow";
 import { UrlType } from "@/app/generated/prisma/client";
 
-const TYPE_LABEL: Record<UrlType, string> = {
+export const TYPE_LABEL: Record<UrlType, string> = {
   GITHUB_REPO: "GitHub repo",
   JIRA_BOARD: "Jira board",
   JIRA_TICKET: "Jira ticket",
   CONFLUENCE_PAGE: "Confluence page",
+  FILE: "Uploaded file",
   OTHER: "Other",
 };
+
+const LINK_TYPE_OPTIONS = (
+  Object.entries(TYPE_LABEL) as [UrlType, string][]
+).filter(([value]) => value !== "FILE");
 
 export default async function UrlsPage() {
   const urls = await prisma.url.findMany({
@@ -27,16 +32,16 @@ export default async function UrlsPage() {
   return (
     <>
       <main className="mx-auto max-w-6xl px-6 py-10 flex-1 w-full">
-        <h1 className="text-xl font-semibold mb-1">URL Index</h1>
+        <h1 className="text-xl font-semibold mb-1">Documentation</h1>
         <p className="text-sm text-black/60 dark:text-white/60 mb-6">
-          Every repo, board, and page you reference elsewhere in OpsPane lives
-          here first. Add a URL, then link it from Screen Documentation or
-          Feature Completion.
+          Every repo, board, page, and uploaded document you reference
+          elsewhere in OpsPane lives here first. Add a link or upload a file,
+          then reference it from Screen Documentation or Feature Completion.
         </p>
 
         <form
           action={createUrl}
-          className="flex flex-wrap gap-2 mb-8 rounded-lg border border-black/10 dark:border-white/15 p-4"
+          className="flex flex-wrap gap-2 mb-4 rounded-lg border border-black/10 dark:border-white/15 p-4"
         >
           <input
             name="url"
@@ -49,7 +54,7 @@ export default async function UrlsPage() {
             defaultValue="GITHUB_REPO"
             className="rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
           >
-            {Object.entries(TYPE_LABEL).map(([value, label]) => (
+            {LINK_TYPE_OPTIONS.map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>
@@ -64,7 +69,31 @@ export default async function UrlsPage() {
             type="submit"
             className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium"
           >
-            Add URL
+            Add link
+          </button>
+        </form>
+
+        <form
+          action={uploadDocument}
+          className="flex flex-wrap items-center gap-2 mb-8 rounded-lg border border-black/10 dark:border-white/15 p-4"
+        >
+          <input
+            name="file"
+            type="file"
+            required
+            accept=".pdf,.ppt,.pptx,.doc,.docx,.txt,.md,.csv,.xlsx"
+            className="flex-1 min-w-[240px] text-sm"
+          />
+          <input
+            name="description"
+            placeholder="One-line description"
+            className="flex-1 min-w-[240px] rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium"
+          >
+            Upload document
           </button>
         </form>
 
@@ -72,7 +101,7 @@ export default async function UrlsPage() {
           <table className="w-full text-sm">
             <thead className="bg-black/5 dark:bg-white/10 text-left">
               <tr>
-                <th className="px-4 py-2 font-medium">URL</th>
+                <th className="px-4 py-2 font-medium">Link / File</th>
                 <th className="px-4 py-2 font-medium">Type</th>
                 <th className="px-4 py-2 font-medium">Description</th>
                 <th className="px-4 py-2 font-medium">Status</th>

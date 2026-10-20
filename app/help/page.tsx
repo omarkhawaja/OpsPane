@@ -1,34 +1,12 @@
 
+// Ordered by expected daily-use frequency, matching app/components/Nav.tsx —
+// keep the two in sync.
 const TABS = [
-  {
-    name: "URL Index",
-    href: "/urls",
-    what: "Every GitHub repo, Jira board/ticket, and Confluence page you track, each with a one-line description.",
-    when: "Start here. Add a URL before referencing it anywhere else — adding a GitHub repo auto-creates the Repo row every other tab reads from.",
-  },
-  {
-    name: "Repository Analyzer",
-    href: "/analyzer",
-    what: "Versioned, frozen snapshots of a repo's screens/data-sources/features, plus a comparer that diffs two repos or two versions of one repo.",
-    when: "Use when you want a point-in-time record of a repo's analysis (before/after a migration step), or to see what two similar repos have in common.",
-  },
-  {
-    name: "Screen Documentation",
-    href: "/screens",
-    what: "The live, editable view for one repo: app-level summary (SSO/AD, microservice flags), a per-screen table of front-end/back-end components and data sources, and screen-to-screen navigation flow.",
-    when: "Use this as your working notes while actually documenting a repo. Click \"Record new version\" on the Analyzer tab when you want to lock in a snapshot.",
-  },
   {
     name: "Feature Completion",
     href: "/features",
     what: "Features linked to a Jira ticket, with a cached status and completion % shown as a progress bar.",
     when: "Use for tracking delivery status against Jira without leaving the app. Click Refresh to queue a Jira status pull.",
-  },
-  {
-    name: "Communications",
-    href: "/communications",
-    what: "Pasted emails, chat messages, meeting transcripts, and generic docs, stored verbatim with a category and a permanent C-<id> reference.",
-    when: "Use whenever you want to keep a decision, instruction, or meeting note referenceable later — by you or by pointing Claude at \"C-14\".",
   },
   {
     name: "Team",
@@ -37,22 +15,46 @@ const TABS = [
     when: "Use to look up or share someone's contact info without digging through Slack or an org chart.",
   },
   {
+    name: "Documentation",
+    href: "/urls",
+    what: "Every GitHub repo, Jira board/ticket, and Confluence page you track, plus uploaded documents (PDF, PowerPoint, Word, etc.) — each with a one-line description.",
+    when: "Start here for anything new. Add a link or upload a file before referencing it anywhere else — adding a GitHub repo auto-creates the Repo row every other tab reads from.",
+  },
+  {
+    name: "Communications",
+    href: "/communications",
+    what: "Pasted emails, chat messages, meeting transcripts, and generic docs, stored verbatim with a category and a permanent C-<id> reference.",
+    when: "Use whenever you want to keep a decision, instruction, or meeting note referenceable later — by you or by pointing Claude at \"C-14\".",
+  },
+  {
+    name: "Screen Documentation",
+    href: "/screens",
+    what: "The live, editable view for one repo: app-level summary (SSO/AD, microservice flags), a per-screen table of front-end/back-end components and data sources, and screen-to-screen navigation flow.",
+    when: "Use this as your working notes while actually documenting a repo. Click \"Record new version\" on the Analyzer tab when you want to lock in a snapshot.",
+  },
+  {
+    name: "Repository Analyzer",
+    href: "/analyzer",
+    what: "Versioned, frozen snapshots of a repo's screens/data-sources/features, plus a comparer that diffs two repos or two versions of one repo.",
+    when: "Use when you want a point-in-time record of a repo's analysis (before/after a migration step), or to see what two similar repos have in common.",
+  },
+  {
     name: "App MD File",
     href: "/app-md",
     what: "OPSPANE.md itself, readable and editable in-app — this app's own architecture description.",
     when: "Use to check what Claude Code currently believes about this app's shape, or to correct it directly.",
   },
   {
-    name: "Help",
-    href: "/help",
-    what: "This page — what every tab does and when to reach for it.",
-    when: "Use when you forget which tab does what.",
-  },
-  {
     name: "Commands",
     href: "/commands",
     what: "Copy-pasteable prompts for a Claude Code session, e.g. draining the pending-task queue.",
     when: "Use when you want Claude to do something specific and don't want to type the exact phrasing from memory.",
+  },
+  {
+    name: "Help",
+    href: "/help",
+    what: "This page — what every tab does and when to reach for it.",
+    when: "Use when you forget which tab does what.",
   },
   {
     name: "What's New",
@@ -82,10 +84,24 @@ export default function HelpPage() {
             the questions you ask every day.
           </p>
           <h2 className="font-medium mb-2">How it&apos;s meant to be used</h2>
+          <p className="text-sm text-black/60 dark:text-white/60 mb-2">
+            Tabs in the sidebar are ordered by how often you&apos;d actually
+            reach for them day to day, not by when they were built:
+          </p>
           <ol className="list-decimal list-inside text-sm text-black/70 dark:text-white/70 space-y-1 mb-3">
             <li>
-              Add every repo, Jira board/ticket, and Confluence page you care
-              about on <a href="/urls" className="underline">URL Index</a> first — everything else links back to it.
+              Check delivery status against Jira on{" "}
+              <a href="/features" className="underline">Feature Completion</a>, and look up who owns what on{" "}
+              <a href="/team" className="underline">Team</a> — the two things you probably check daily.
+            </li>
+            <li>
+              Add every repo, Jira board/ticket, Confluence page, and uploaded
+              document (PDF, PowerPoint, Word, etc.) you care about on{" "}
+              <a href="/urls" className="underline">Documentation</a> — everything else links back to it, so add things here first.
+            </li>
+            <li>
+              Keep every relevant email, message, or transcript on{" "}
+              <a href="/communications" className="underline">Communications</a> so it&apos;s referenceable later.
             </li>
             <li>
               Document a repo&apos;s screens, components, and data sources on{" "}
@@ -93,15 +109,9 @@ export default function HelpPage() {
               <a href="/analyzer" className="underline">Repository Analyzer</a> whenever it&apos;s worth freezing (e.g. before/after a migration step).
             </li>
             <li>
-              Track delivery against Jira on <a href="/features" className="underline">Feature Completion</a>, and keep every relevant email, message, or transcript on{" "}
-              <a href="/communications" className="underline">Communications</a> so it&apos;s referenceable later.
-            </li>
-            <li>
-              Look up who&apos;s who on <a href="/team" className="underline">Team</a>, and use{" "}
+              <a href="/app-md" className="underline">App MD File</a> and{" "}
+              <a href="/whats-new" className="underline">What&apos;s New</a> are how the app describes itself to a fresh Claude Code session; use{" "}
               <a href="/commands" className="underline">Commands</a> whenever you want Claude to act on any of this (e.g. drain the refresh queue).
-            </li>
-            <li>
-              <a href="/app-md" className="underline">App MD File</a> and <a href="/whats-new" className="underline">What&apos;s New</a> are how the app describes itself to a fresh Claude Code session — read them if you want to know exactly what state things are in.
             </li>
           </ol>
           <p className="text-sm text-black/60 dark:text-white/60">

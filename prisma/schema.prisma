@@ -15,6 +15,7 @@ enum UrlType {
   JIRA_BOARD
   JIRA_TICKET
   CONFLUENCE_PAGE
+  FILE
   OTHER
 }
 
@@ -46,12 +47,14 @@ enum CommCategory {
 }
 
 model Url {
-  id          String   @id @default(cuid())
-  url         String   @unique
-  type        UrlType
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  url           String   @unique // for type=FILE, the servable path e.g. /uploads/<cuid>-name.pdf
+  type          UrlType
+  description   String?
+  fileName      String? // original filename, only set when type=FILE
+  fileSizeBytes Int? // only set when type=FILE
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   repo     Repo?
   features Feature[]
