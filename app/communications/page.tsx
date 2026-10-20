@@ -1,4 +1,3 @@
-import { Nav } from "@/app/components/Nav";
 import { prisma } from "@/lib/prisma";
 import { createCommunication } from "./actions";
 import { CommunicationCard } from "./CommunicationCard";
@@ -19,7 +18,6 @@ export default async function CommunicationsPage() {
 
   return (
     <>
-      <Nav active="/communications" />
       <main className="mx-auto max-w-6xl px-6 py-10 flex-1 w-full">
         <h1 className="text-xl font-semibold mb-1">Team Communication Tracker</h1>
         <p className="text-sm text-black/60 dark:text-white/60 mb-6">

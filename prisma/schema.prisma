@@ -179,6 +179,33 @@ model Feature {
   updatedAt     DateTime  @updatedAt
 }
 
+// A reusable, copy-pasteable prompt for the Commands tab — the exact text
+// you paste into a Claude Code session to make it do something (e.g. drain
+// the Task queue). Seeded with a handful of defaults the first time the
+// Commands tab is opened with an empty table; fully editable after that.
+model Command {
+  id          String   @id @default(cuid())
+  label       String
+  command     String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// One entry per shipped change, shown on the What's New tab (last in the
+// nav). `commitSha` is captured from `git rev-parse HEAD` at the moment the
+// entry is recorded, if the working directory is a git repo — that's the
+// actual rollback mechanism ("git checkout <commitSha>"); this table is a
+// human-readable index into git history, not a snapshot of app state itself.
+model Release {
+  id        Int      @id @default(autoincrement())
+  version   String // e.g. "0.3.0"
+  title     String
+  notes     String // markdown-ish bullet list of what shipped
+  commitSha String?
+  createdAt DateTime @default(now())
+}
+
 // Task queue for the "Claude-Code-driven" refresh model: clicking a Refresh
 // button in the UI just creates a PENDING row here. A Claude Code session
 // picks up pending tasks, does the real work (reading the repo, calling the

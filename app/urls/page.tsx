@@ -1,4 +1,3 @@
-import { Nav } from "@/app/components/Nav";
 import { prisma } from "@/lib/prisma";
 import { createUrl } from "./actions";
 import { UrlRow } from "./UrlRow";
@@ -27,7 +26,6 @@ export default async function UrlsPage() {
 
   return (
     <>
-      <Nav active="/urls" />
       <main className="mx-auto max-w-6xl px-6 py-10 flex-1 w-full">
         <h1 className="text-xl font-semibold mb-1">URL Index</h1>
         <p className="text-sm text-black/60 dark:text-white/60 mb-6">

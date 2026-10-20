@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { Nav } from "./components/Nav";
 
 export default function Home() {
   return (
     <>
-      <Nav active="/" />
       <main className="mx-auto max-w-6xl px-6 py-12 flex-1">
         <h1 className="text-2xl font-semibold mb-2">OpsPane</h1>
         <p className="text-sm text-black/60 dark:text-white/60 mb-8 max-w-2xl">

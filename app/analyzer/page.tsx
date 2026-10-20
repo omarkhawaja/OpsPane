@@ -1,4 +1,3 @@
-import { Nav } from "@/app/components/Nav";
 import { prisma } from "@/lib/prisma";
 import { deleteAnalysisVersion, recordAnalysisVersion, requestReanalysis } from "./actions";
 
@@ -36,7 +35,6 @@ export default async function AnalyzerPage(props: PageProps<"/analyzer">) {
   if (repos.length === 0) {
     return (
       <>
-        <Nav active="/analyzer" />
         <main className="mx-auto max-w-6xl px-6 py-10 flex-1 w-full">
           <h1 className="text-xl font-semibold mb-1">Repository Analyzer</h1>
           <p className="text-sm text-black/50 dark:text-white/50">
@@ -105,7 +103,6 @@ export default async function AnalyzerPage(props: PageProps<"/analyzer">) {
 
   return (
     <>
-      <Nav active="/analyzer" />
       <main className="mx-auto max-w-6xl px-6 py-10 flex-1 w-full">
         <h1 className="text-xl font-semibold mb-1">Repository Analyzer</h1>
         <p className="text-sm text-black/60 dark:text-white/60 mb-6">

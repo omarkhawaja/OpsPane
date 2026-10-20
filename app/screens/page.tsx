@@ -1,4 +1,3 @@
-import { Nav } from "@/app/components/Nav";
 import { prisma } from "@/lib/prisma";
 import {
   addDataSource,
@@ -58,7 +57,6 @@ export default async function ScreensPage(props: PageProps<"/screens">) {
 
   return (
     <>
-      <Nav active="/screens" />
       <main className="mx-auto max-w-6xl px-6 py-10 flex-1 w-full">
         <h1 className="text-xl font-semibold mb-1">Screen Documentation</h1>
         <p className="text-sm text-black/60 dark:text-white/60 mb-6">

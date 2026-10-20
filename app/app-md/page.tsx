@@ -1,4 +1,3 @@
-import { Nav } from "@/app/components/Nav";
 import { CopyButton } from "@/app/components/CopyButton";
 import { saveAppMd } from "./actions";
 import { readFile } from "node:fs/promises";
@@ -16,7 +15,6 @@ export default async function AppMdPage() {
 
   return (
     <>
-      <Nav active="/app-md" />
       <main className="mx-auto max-w-6xl px-6 py-10 flex-1 w-full">
         <div className="flex items-start justify-between gap-4 mb-1">
           <h1 className="text-xl font-semibold">App MD File</h1>
