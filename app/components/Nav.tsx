@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Logo } from "./Logo";
 
 const TABS = [
   { href: "/urls", label: "URL Index" },
@@ -21,8 +22,12 @@ export function Nav() {
 
   return (
     <aside className="w-56 shrink-0 border-r border-black/10 dark:border-white/15 flex flex-col">
-      <Link href="/" className="font-semibold tracking-tight px-5 py-4 border-b border-black/10 dark:border-white/15">
-        OpsPane
+      <Link
+        href="/"
+        className="flex items-center gap-2 px-5 py-4 border-b border-black/10 dark:border-white/15"
+      >
+        <Logo className="w-7 h-7 text-foreground shrink-0" />
+        <span className="font-semibold tracking-tight text-lg">OpsPane</span>
       </Link>
       <nav className="flex flex-col gap-0.5 p-3 overflow-y-auto">
         {TABS.map((tab) => (
