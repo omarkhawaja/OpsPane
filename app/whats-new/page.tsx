@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { createRelease, deleteRelease } from "./actions";
 
 export default async function WhatsNewPage() {
-  const releases = await prisma.release.findMany({ orderBy: { createdAt: "desc" } });
+  const releases = await prisma.release.findMany({
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+  });
 
   return (
     <>
