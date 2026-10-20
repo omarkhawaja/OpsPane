@@ -24,3 +24,16 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* RefPicker pointer tool: while active, any [data-ops-ref] element is
+   highlighted and clickable to copy a reference instead of its normal effect. */
+html[data-ops-picking="true"] [data-ops-ref] {
+  outline: 1.5px dashed color-mix(in srgb, var(--foreground) 50%, transparent);
+  outline-offset: 1px;
+  cursor: crosshair;
+}
+
+html[data-ops-picking="true"] [data-ops-ref]:hover {
+  outline: 2px solid var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+}

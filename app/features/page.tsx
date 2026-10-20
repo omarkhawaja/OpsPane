@@ -102,7 +102,12 @@ export default async function FeaturesPage() {
                 </tr>
               )}
               {features.map((f) => (
-                <tr key={f.id} className="border-t border-black/10 dark:border-white/10 align-top">
+                <tr
+                  key={f.id}
+                  className="border-t border-black/10 dark:border-white/10 align-top"
+                  data-ops-ref={`feature:${f.id}`}
+                  data-ops-label={`Feature "${f.name}"`}
+                >
                   <td className="px-4 py-2 font-medium whitespace-nowrap">{f.name}</td>
                   <td className="px-4 py-2 whitespace-nowrap">{f.repo?.name ?? "—"}</td>
                   <td className="px-4 py-2 max-w-[220px] truncate">

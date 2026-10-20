@@ -20,6 +20,11 @@ export default function Home() {
             body="Every GitHub repo, Jira board, and Confluence page you track, with a one-line description."
           />
           <Card
+            href="/analyzer"
+            title="Repository Analyzer"
+            body="Versioned analysis snapshots per repo, plus a comparer to diff two repos or two versions."
+          />
+          <Card
             href="/screens"
             title="Screen Documentation"
             body="Per-repo screen table: front-end/back-end components and data sources per screen, plus navigation flow."
@@ -28,6 +33,11 @@ export default function Home() {
             href="/features"
             title="Feature Completion"
             body="Features linked to Jira tickets, with a completion % you refresh on demand."
+          />
+          <Card
+            href="/communications"
+            title="Communications"
+            body="Paste emails, messages, and meeting transcripts — each one gets a permanent reference you can point Claude at."
           />
           <Card
             href="/team"

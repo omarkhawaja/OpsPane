@@ -37,6 +37,14 @@ enum DataSourceKind {
   UNKNOWN
 }
 
+enum CommCategory {
+  EMAIL
+  MESSAGE
+  MEETING_TRANSCRIPT
+  DOCUMENTATION
+  OTHER
+}
+
 model Url {
   id          String   @id @default(cuid())
   url         String   @unique
@@ -59,9 +67,52 @@ model Repo {
   isMicroservice Boolean   @default(false)
   lastScannedAt  DateTime?
 
-  screens  Screen[]
-  features Feature[]
-  members  Member[]
+  screens          Screen[]
+  features         Feature[]
+  members          Member[]
+  communications   Communication[]
+  analysisVersions RepoAnalysisVersion[]
+}
+
+// An immutable, timestamped snapshot of a repo's analysis — the Repository
+// Analyzer tab's version history. `screensJson`/`featuresJson` are frozen
+// copies (JSON arrays) taken from the live Screen/ScreenDataSource tables
+// (plus a manually/Claude-entered feature list) at the moment the version was
+// recorded, so re-running analysis later never overwrites history: it adds a
+// new version with versionNumber = previous max + 1. The Repository Comparer
+// diffs two of these snapshots (same repo across versions, or two repos)
+// by matching screen/feature names as plain strings — no AST diffing.
+model RepoAnalysisVersion {
+  id             Int      @id @default(autoincrement())
+  repoId         String
+  repo           Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  versionNumber  Int
+  summary        String?
+  hasSsoAd       Boolean  @default(false)
+  isMicroservice Boolean  @default(false)
+  screensJson    String // JSON: [{ name, route, frontend, backend, dataSources: [{ kind, label }] }]
+  featuresJson   String // JSON: [{ name, description }]
+  notes          String? // e.g. "what changed since last version"
+  createdAt      DateTime @default(now())
+
+  @@unique([repoId, versionNumber])
+}
+
+// Pasted-in emails, chat messages, meeting transcripts, or generic docs.
+// `id` is a sequential integer (not a cuid, unlike every other model here) on
+// purpose: it's the stable, human-referenceable handle for a communication —
+// shown in the UI as "C-{id}" — so you (or Claude) can point at "C-14"
+// unambiguously instead of a long opaque string.
+model Communication {
+  id        Int          @id @default(autoincrement())
+  category  CommCategory
+  title     String?
+  source    String? // e.g. "jane.doe@acme.com", "Sprint planning 2026-10-14"
+  content   String
+  repoId    String?
+  repo      Repo?        @relation(fields: [repoId], references: [id], onDelete: SetNull)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 }
 
 model Member {
@@ -79,17 +130,17 @@ model Member {
 }
 
 model Screen {
-  id          String   @id @default(cuid())
-  repoId      String
-  repo        Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
-  name        String
-  route       String? // e.g. /dashboard/settings
-  frontend    String? // JSON-stringified list of front-end components
-  backend     String? // JSON-stringified list of back-end components/endpoints
-  notes       String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  repoId    String
+  repo      Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  name      String
+  route     String? // e.g. /dashboard/settings
+  frontend  String? // JSON-stringified list of front-end components
+  backend   String? // JSON-stringified list of back-end components/endpoints
+  notes     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   dataSources ScreenDataSource[]
   outgoing    ScreenTransition[] @relation("fromScreen")
@@ -115,17 +166,17 @@ model ScreenTransition {
 }
 
 model Feature {
-  id             String    @id @default(cuid())
-  name           String
-  repoId         String?
-  repo           Repo?     @relation(fields: [repoId], references: [id], onDelete: SetNull)
-  jiraUrlId      String?
-  jiraUrl        Url?      @relation(fields: [jiraUrlId], references: [id], onDelete: SetNull)
-  status         String? // raw Jira status/column, cached
-  completionPct  Int? // 0-100, derived from status, cached
-  lastCheckedAt  DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  name          String
+  repoId        String?
+  repo          Repo?     @relation(fields: [repoId], references: [id], onDelete: SetNull)
+  jiraUrlId     String?
+  jiraUrl       Url?      @relation(fields: [jiraUrlId], references: [id], onDelete: SetNull)
+  status        String? // raw Jira status/column, cached
+  completionPct Int? // 0-100, derived from status, cached
+  lastCheckedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 // Task queue for the "Claude-Code-driven" refresh model: clicking a Refresh

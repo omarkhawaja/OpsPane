@@ -100,7 +100,11 @@ export default async function ScreensPage(props: PageProps<"/screens">) {
             {repo && (
               <>
                 {/* High-level app table */}
-                <section className="mb-8 rounded-lg border border-black/10 dark:border-white/15 p-5">
+                <section
+                  className="mb-8 rounded-lg border border-black/10 dark:border-white/15 p-5"
+                  data-ops-ref={`repo:${repo.id}`}
+                  data-ops-label={`Repo "${repo.name}" summary`}
+                >
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <h2 className="font-medium">{repo.name}</h2>
                     <form action={requestRepoScan}>
@@ -179,7 +183,12 @@ export default async function ScreensPage(props: PageProps<"/screens">) {
                           </tr>
                         )}
                         {repo.screens.map((s) => (
-                          <tr key={s.id} className="border-t border-black/10 dark:border-white/10 align-top">
+                          <tr
+                            key={s.id}
+                            className="border-t border-black/10 dark:border-white/10 align-top"
+                            data-ops-ref={`screen:${s.id}`}
+                            data-ops-label={`Screen "${s.name}" (${repo.name})`}
+                          >
                             <td className="px-4 py-2 font-medium whitespace-nowrap">{s.name}</td>
                             <td className="px-4 py-2 whitespace-nowrap text-black/60 dark:text-white/60">
                               {s.route ?? "—"}

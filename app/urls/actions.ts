@@ -31,6 +31,20 @@ export async function createUrl(formData: FormData) {
   revalidatePath("/features");
 }
 
+export async function updateUrl(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const url = String(formData.get("url") ?? "").trim();
+  const type = String(formData.get("type") ?? "OTHER") as UrlType;
+  const description = String(formData.get("description") ?? "").trim() || null;
+  if (!id || !url) return;
+
+  await prisma.url.update({
+    where: { id },
+    data: { url, type, description },
+  });
+  revalidatePath("/urls");
+}
+
 export async function deleteUrl(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;

@@ -1,7 +1,7 @@
 import { Nav } from "@/app/components/Nav";
-import { CopyButton } from "@/app/components/CopyButton";
 import { prisma } from "@/lib/prisma";
-import { createMember, deleteMember } from "./actions";
+import { createMember } from "./actions";
+import { MemberRow } from "./MemberRow";
 
 export default async function TeamPage() {
   const [members, repos] = await Promise.all([
@@ -63,25 +63,7 @@ export default async function TeamPage() {
                 </tr>
               )}
               {members.map((m) => (
-                <tr key={m.id} className="border-t border-black/10 dark:border-white/10">
-                  <td className="px-4 py-2 whitespace-nowrap font-medium">
-                    {m.firstName} {m.lastName}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap">{m.role ?? "—"}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{m.repo?.name ?? "—"}</td>
-                  <td className="px-4 py-2 whitespace-nowrap flex items-center gap-2">
-                    {m.email}
-                    <CopyButton text={m.email} />
-                  </td>
-                  <td className="px-4 py-2">
-                    <form action={deleteMember}>
-                      <input type="hidden" name="id" value={m.id} />
-                      <button className="rounded-md border border-black/15 dark:border-white/20 px-2 py-1 text-xs">
-                        Delete
-                      </button>
-                    </form>
-                  </td>
-                </tr>
+                <MemberRow key={m.id} m={m} repos={repos} />
               ))}
             </tbody>
           </table>

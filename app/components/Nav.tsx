@@ -2,8 +2,10 @@ import Link from "next/link";
 
 const TABS = [
   { href: "/urls", label: "URL Index" },
+  { href: "/analyzer", label: "Repository Analyzer" },
   { href: "/screens", label: "Screen Documentation" },
   { href: "/features", label: "Feature Completion" },
+  { href: "/communications", label: "Communications" },
   { href: "/team", label: "Team" },
   { href: "/app-md", label: "App MD File" },
 ] as const;

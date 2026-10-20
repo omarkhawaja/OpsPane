@@ -1,6 +1,7 @@
 import { Nav } from "@/app/components/Nav";
 import { prisma } from "@/lib/prisma";
-import { createUrl, deleteUrl, requestUrlRefresh } from "./actions";
+import { createUrl } from "./actions";
+import { UrlRow } from "./UrlRow";
 import { UrlType } from "@/app/generated/prisma/client";
 
 const TYPE_LABEL: Record<UrlType, string> = {
@@ -89,44 +90,7 @@ export default async function UrlsPage() {
                 </tr>
               )}
               {urls.map((u) => (
-                <tr key={u.id} className="border-t border-black/10 dark:border-white/10">
-                  <td className="px-4 py-2 max-w-[280px] truncate">
-                    <a href={u.url} target="_blank" className="underline" rel="noreferrer">
-                      {u.url}
-                    </a>
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap">{TYPE_LABEL[u.type]}</td>
-                  <td className="px-4 py-2">{u.description ?? "—"}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">
-                    {pendingByTarget.has(u.id) ? (
-                      <span className="text-amber-600 dark:text-amber-400">Refresh pending</span>
-                    ) : (
-                      <span className="text-black/40 dark:text-white/40">Idle</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap flex gap-2 justify-end">
-                    <form action={requestUrlRefresh}>
-                      <input type="hidden" name="id" value={u.id} />
-                      <input type="hidden" name="type" value={u.type} />
-                      <button
-                        type="submit"
-                        disabled={pendingByTarget.has(u.id)}
-                        className="rounded-md border border-black/15 dark:border-white/20 px-2 py-1 text-xs disabled:opacity-40"
-                      >
-                        Refresh
-                      </button>
-                    </form>
-                    <form action={deleteUrl}>
-                      <input type="hidden" name="id" value={u.id} />
-                      <button
-                        type="submit"
-                        className="rounded-md border border-black/15 dark:border-white/20 px-2 py-1 text-xs"
-                      >
-                        Delete
-                      </button>
-                    </form>
-                  </td>
-                </tr>
+                <UrlRow key={u.id} u={u} isPending={pendingByTarget.has(u.id)} />
               ))}
             </tbody>
           </table>
