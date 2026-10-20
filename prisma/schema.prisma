@@ -23,6 +23,7 @@ enum TaskKind {
   REPO_SCAN
   JIRA_STATUS
   CONFLUENCE_SCRAPE
+  GENERATE_RELEASE_NOTES
 }
 
 enum TaskStatus {

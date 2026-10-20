@@ -1,11 +1,16 @@
 import { CopyButton } from "@/app/components/CopyButton";
 import { prisma } from "@/lib/prisma";
-import { createRelease, deleteRelease } from "./actions";
+import { createRelease, deleteRelease, requestReleaseNotes } from "./actions";
 
 export default async function WhatsNewPage() {
-  const releases = await prisma.release.findMany({
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-  });
+  const [releases, pendingTask] = await Promise.all([
+    prisma.release.findMany({
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    }),
+    prisma.task.findFirst({
+      where: { kind: "GENERATE_RELEASE_NOTES", status: "PENDING" },
+    }),
+  ]);
 
   return (
     <>
@@ -17,25 +22,55 @@ export default async function WhatsNewPage() {
           this table is an index into git history, not a copy of app state.
         </p>
 
-        <form
-          action={createRelease}
-          className="flex flex-col gap-2 mb-8 rounded-lg border border-black/10 dark:border-white/15 p-4"
-        >
-          <div className="flex gap-2">
-            <input name="version" required placeholder="Version (e.g. 0.3.0)" className="rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm" />
-            <input name="title" required placeholder="Title" className="flex-1 rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm" />
+        <div className="mb-8 rounded-lg border border-black/10 dark:border-white/15 p-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="font-medium text-sm mb-1">Generate from recent changes</h2>
+              <p className="text-xs text-black/60 dark:text-white/60">
+                Queues a task for Claude Code to read the git history since the
+                last recorded release, draft a version/title/notes, and record
+                it here — no typing required.
+              </p>
+            </div>
+            <form action={requestReleaseNotes}>
+              <button
+                type="submit"
+                disabled={!!pendingTask}
+                className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium disabled:opacity-40 whitespace-nowrap"
+              >
+                {pendingTask ? "Pending…" : "Generate release notes"}
+              </button>
+            </form>
           </div>
-          <textarea
-            name="notes"
-            required
-            rows={3}
-            placeholder={"What shipped, one bullet per line:\n- Added X\n- Fixed Y"}
-            className="w-full rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm font-mono"
-          />
-          <button className="self-end rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium">
-            Record release
-          </button>
-        </form>
+          {pendingTask && (
+            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+              Queued — ask Claude Code to &quot;process pending OpsPane
+              tasks&quot; to fulfill it.
+            </p>
+          )}
+
+          <details className="mt-4">
+            <summary className="text-xs text-black/50 dark:text-white/50 cursor-pointer">
+              Or fill it in manually
+            </summary>
+            <form action={createRelease} className="flex flex-col gap-2 mt-3">
+              <div className="flex gap-2">
+                <input name="version" required placeholder="Version (e.g. 0.3.0)" className="rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm" />
+                <input name="title" required placeholder="Title" className="flex-1 rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm" />
+              </div>
+              <textarea
+                name="notes"
+                required
+                rows={3}
+                placeholder={"What shipped, one bullet per line:\n- Added X\n- Fixed Y"}
+                className="w-full rounded-md border border-black/15 dark:border-white/20 bg-transparent px-3 py-2 text-sm font-mono"
+              />
+              <button className="self-end rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium">
+                Record release
+              </button>
+            </form>
+          </details>
+        </div>
 
         <div className="flex flex-col gap-4">
           {releases.length === 0 && (

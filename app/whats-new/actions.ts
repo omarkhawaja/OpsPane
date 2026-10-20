@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { execSync } from "node:child_process";
 import { prisma } from "@/lib/prisma";
+import { TaskKind } from "@/app/generated/prisma/client";
 
 function currentCommitSha(): string | null {
   try {
@@ -10,6 +11,26 @@ function currentCommitSha(): string | null {
   } catch {
     return null;
   }
+}
+
+// One-click alternative to filling out version/title/notes by hand: queues a
+// task for a Claude Code session to draft the release entry itself by
+// reading `git log` since the last recorded Release's commitSha (or the
+// full history if there isn't one yet) and calling prisma.release.create.
+export async function requestReleaseNotes() {
+  const lastRelease = await prisma.release.findFirst({ orderBy: { id: "desc" } });
+
+  await prisma.task.create({
+    data: {
+      kind: TaskKind.GENERATE_RELEASE_NOTES,
+      targetId: lastRelease?.commitSha ?? "HEAD",
+      notes: lastRelease
+        ? `Draft a release covering changes since commit ${lastRelease.commitSha} (last recorded: v${lastRelease.version}).`
+        : "No prior release recorded — draft one covering the full project history.",
+    },
+  });
+
+  revalidatePath("/whats-new");
 }
 
 export async function createRelease(formData: FormData) {

@@ -8,7 +8,7 @@ const DEFAULT_COMMANDS = [
     label: "Process pending tasks",
     command: "Process pending OpsPane tasks.",
     description:
-      "Drains the Task queue: scans repos, pulls Jira ticket status, and scrapes Confluence pages for every PENDING task, then marks each one DONE.",
+      "Drains the Task queue: scans repos, pulls Jira ticket status, scrapes Confluence pages, and drafts release notes for every PENDING task, then marks each one DONE.",
   },
   {
     label: "Re-analyze a repo",
