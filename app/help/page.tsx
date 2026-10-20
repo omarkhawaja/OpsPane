@@ -71,6 +71,47 @@ export default function HelpPage() {
           What each tab does and when to use it.
         </p>
 
+        <section className="mb-8 rounded-lg border border-black/10 dark:border-white/15 p-5">
+          <h2 className="font-medium mb-2">What OpsPane is</h2>
+          <p className="text-sm text-black/70 dark:text-white/70 mb-3">
+            OpsPane is a single local dashboard for managing a POC-to-production
+            migration and everything around it: what a given codebase actually
+            does, how far along it is, who&apos;s working on it, and every
+            scrap of communication tied to that work. It replaces jumping
+            between GitHub, Jira, Confluence, email, and your own notes for
+            the questions you ask every day.
+          </p>
+          <h2 className="font-medium mb-2">How it&apos;s meant to be used</h2>
+          <ol className="list-decimal list-inside text-sm text-black/70 dark:text-white/70 space-y-1 mb-3">
+            <li>
+              Add every repo, Jira board/ticket, and Confluence page you care
+              about on <a href="/urls" className="underline">URL Index</a> first — everything else links back to it.
+            </li>
+            <li>
+              Document a repo&apos;s screens, components, and data sources on{" "}
+              <a href="/screens" className="underline">Screen Documentation</a>, then lock in a point-in-time copy on{" "}
+              <a href="/analyzer" className="underline">Repository Analyzer</a> whenever it&apos;s worth freezing (e.g. before/after a migration step).
+            </li>
+            <li>
+              Track delivery against Jira on <a href="/features" className="underline">Feature Completion</a>, and keep every relevant email, message, or transcript on{" "}
+              <a href="/communications" className="underline">Communications</a> so it&apos;s referenceable later.
+            </li>
+            <li>
+              Look up who&apos;s who on <a href="/team" className="underline">Team</a>, and use{" "}
+              <a href="/commands" className="underline">Commands</a> whenever you want Claude to act on any of this (e.g. drain the refresh queue).
+            </li>
+            <li>
+              <a href="/app-md" className="underline">App MD File</a> and <a href="/whats-new" className="underline">What&apos;s New</a> are how the app describes itself to a fresh Claude Code session — read them if you want to know exactly what state things are in.
+            </li>
+          </ol>
+          <p className="text-sm text-black/60 dark:text-white/60">
+            Nothing refreshes from an external system on its own — every
+            &quot;Refresh&quot; button just queues a task for a Claude Code
+            session to actually fulfill, which keeps OpsPane&apos;s own API/
+            token usage at zero.
+          </p>
+        </section>
+
         <div className="overflow-x-auto rounded-lg border border-black/10 dark:border-white/15">
           <table className="w-full text-sm">
             <thead className="bg-black/5 dark:bg-white/10 text-left">

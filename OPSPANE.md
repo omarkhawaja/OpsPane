@@ -6,6 +6,27 @@ OpsPane is a local-first dashboard built for a technical lead managing multiple 
 ## User Preferences
 Preferred communication style: direct, concrete, no filler. Push back on scope creep; sequence big asks into phases rather than building everything at once.
 
+## Maintenance Protocol (read this every session)
+This file is how a fresh Claude Code session — one with no memory of prior
+conversations — picks up exactly where the last one left off. That only works
+if it stays current. **Every time a feature, model, route, or architectural
+decision changes in this app, update this file in the same unit of work as
+the code change**, not as a follow-up:
+1. Update the relevant bullet(s) under **Key Features and Design Decisions**
+   (add one for a new tab/capability, edit in place for a changed one).
+2. Update the model list under **Data Storage → Schema** if `prisma/schema.prisma` changed.
+3. Update **Open / Deferred Scope** — remove items that got built, add new ones that got deferred.
+4. After committing the change (`git commit`, not before — the commit SHA
+   recorded in step 5 must point at the commit that actually contains the
+   change), record a `What's New` entry (`/whats-new` tab, or directly via
+   `prisma.release.create`) summarizing what shipped.
+5. Keep every tab's one-line description (the `<p>` under its `<h1>`) and its
+   row in the Help tab's table (`app/help/page.tsx`) accurate — both are read
+   by the human, not just by Claude.
+This is not optional cleanup — a stale OPSPANE.md is actively worse than no
+OPSPANE.md, because a future session will trust it and build on wrong
+assumptions.
+
 ## System Architecture
 
 ### Frontend
@@ -37,7 +58,7 @@ Preferred communication style: direct, concrete, no filler. Push back on scope c
 - **RefPicker pointer tool** (global, bottom-right on every page): toggled on, it highlights every element carrying `data-ops-ref`/`data-ops-label` attributes; clicking one copies `opspane-ref: <ref> (<label>)` to the clipboard instead of the element's normal action. This is the realistic version of "point at a UI element for Claude" — there is no live socket between the browser and a Claude Code session, so the tool produces a copyable reference you paste into chat, not a live pointer Claude can see. Convention for any new UI: tag the outermost row/card of anything worth referencing with `data-ops-ref="<type>:<id>"` (e.g. `screen:<id>`, `feature:<id>`, `comm:<id>`, `member:<id>`, `url:<id>`, `repo:<id>`, `analysis-version:<id>`) and a human-readable `data-ops-label`.
 - **Refresh model — "Claude-Code-driven," decided explicitly over a standalone-API-key app**: nothing in OpsPane calls GitHub, Jira, or Confluence automatically. Every "Refresh" button (on a URL, a repo, or a feature) just inserts a `PENDING` row into the `Task` table (`kind`: `REPO_SCAN` | `JIRA_STATUS` | `CONFLUENCE_SCRAPE`, `targetId`: the id of the thing to refresh). A Claude Code session is expected to periodically query `prisma.task.findMany({ where: { status: "PENDING" } })`, do the real work using its own GitHub/Jira/Confluence MCP tools, write the results into the relevant tables (`Repo.summary`/`hasSsoAd`/`isMicroservice`, `Screen`/`ScreenDataSource`, `Feature.status`/`completionPct`, etc.), and mark the task `DONE`. This keeps OpsPane's own token/API usage at zero and avoids needing any API keys or OAuth wired into the app itself.
 - **No auth, no multi-user**: this is a single-operator local tool. No login, no SSO — intentionally, since adding identity management here would contradict the "ship something usable fast" goal. If multi-user access becomes a real need later, that's a distinct phase, not a default.
-- **Help** (`/help`): a static table (no DB — just a hardcoded array in `app/help/page.tsx`) of every tab's purpose and when to use it. Update this array whenever a tab is added, renamed, or its purpose changes.
+- **Help** (`/help`): a short "what OpsPane is / how to use it" walkthrough, followed by a static table (no DB — just a hardcoded array in `app/help/page.tsx`) of every tab's purpose and when to use it. Update the array (and the walkthrough prose, if the overall workflow changes) whenever a tab is added, renamed, or its purpose changes.
 - **Commands** (`/commands`): a `Command` table of copy-pasteable Claude Code prompts (label, exact command text, one-line description). Seeded with 5 defaults (process pending tasks, re-analyze a repo, summarize communications, update this file, compare two repos) via a "Load starter commands" button shown only when the table is empty (`seedDefaultCommands` in `app/commands/actions.ts`) — avoids the double-insert risk of seeding as a render-time side effect. Full CRUD after that.
 - **What's New** (`/whats-new`, last tab in the sidebar): a `Release` table — version, title, free-text notes, and a `commitSha` auto-captured via `execSync("git rev-parse HEAD")` at the moment the entry is created. **This is the actual rollback mechanism**: the table itself holds no app-state snapshot, just a human-readable index into git history, so "roll back to v0.3.0" means `git checkout <that entry's commitSha>`, not restoring a database row. **Workflow going forward: after a batch of changes lands (and is committed), record a Release entry summarizing what shipped** — do this after `git commit`, not before, or the captured SHA will point at the previous commit instead of the one that actually contains the change.
 
